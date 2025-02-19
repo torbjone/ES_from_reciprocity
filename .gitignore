@@ -1,0 +1,10 @@
+*.aux
+*.bbl
+*.blg
+*.log
+*.gz
+*.png
+*.npy
+cell_models/allen_cell_models/*
+sim_results/*
+figs/*
