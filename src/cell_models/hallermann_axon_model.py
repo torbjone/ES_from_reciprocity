@@ -6,7 +6,7 @@ import neuron
 
 h = neuron.h
 import LFPy
-from . import hallermann_params as hp
+import src.cell_models.hallermann_params as hp
 
 
 soma_dict = hp.soma_dict
@@ -331,7 +331,7 @@ def return_constructed_myelinated_axon(tstop, dt,
 
     cell = LFPy.Cell(morphology=allsecs, **cell_params)
     if make_passive:
-        from main import remove_active_mechanisms
+        from src.main import remove_active_mechanisms
         remove_list = node_dict["density_mechs"].keys()
         remove_list = [n for n in remove_list if not n == "pas"]
         remove_active_mechanisms(remove_list, cell)

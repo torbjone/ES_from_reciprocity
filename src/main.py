@@ -7,7 +7,6 @@ import matplotlib
 matplotlib.use("AGG")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-from mpl_toolkits.mplot3d import art3d
 from matplotlib.patches import Circle, Ellipse
 import scipy.fftpack as ff
 import LFPy
@@ -18,6 +17,7 @@ import neuron
 from src.plotting_convention import mark_subplots, simplify_axes, cmap_v_e
 from src.inspect_allen_cell_model import return_allen_cell_model
 import src.cell_models.hallermann_axon_model as ha
+from mpl_toolkits.mplot3d import art3d
 h = neuron.h
 
 root_dir = join(os.path.dirname(os.path.realpath(__file__)), '..')
@@ -437,6 +437,20 @@ def return_axon_cell(tstop, dt, apic_diam=1,
     return cell
 
 
+def remove_active_mechanisms(remove_list, cell):
+    # remove_list = ["Nap_Et2", "NaTa_t", "NaTs2_t", "SKv3_1",
+    # "SK_E2", "K_Tst", "K_Pst", "KdShu2007",
+    # "Im", "Ih", "CaDynamics_E2", "Ca_LVAst", "Ca", "Ca_HVA",
+    #'StochKv']
+    mt = h.MechanismType(0)
+    for sec in h.allsec():
+        for seg in sec:
+            for mech in remove_list:
+                mt.select(mech)
+                mt.remove(sec=sec)
+    return cell
+
+
 def make_extracellular_stimuli(dbs_params, cell, insert=True):
     """ Function to calculate and apply external potential """
 
@@ -702,7 +716,8 @@ def make_RT_validation_plot(results_folder, fig_folder):
                             pid = os.fork()
                             if pid == 0:
                                 do_RT_sim(cell_name, amp_e, sim_name, stim_idx, stim_freq, 
-                                        make_passive, 'extracellular', pos, tstop, cutoff, dt, results_folder, fig_folder)
+                                        make_passive, 'extracellular', pos, tstop, cutoff,
+                                          dt, results_folder, fig_folder)
                                 os._exit(0)
                             else:
                                 os.waitpid(pid, 0)
@@ -1131,7 +1146,7 @@ def analytic_ext_pot(fig_folder):
     fig.savefig(join(fig_folder, f"analytic_ext_pot_combos.pdf"))
 
 
-def neural_elements_fig(results_folder, ):
+def neural_elements_fig(results_folder, fig_folder):
 
     case_names = ["PC", "IN", "axon terminal", "passing axon"]
     input_idxs = [0, 0, 0, "midpoint"]
@@ -1148,7 +1163,7 @@ def neural_elements_fig(results_folder, ):
     if do_neural_simulations:
         white_noise_neural_sims(1.0, make_passive, case_names,
                                 cell_names, input_idxs, plot_dists, plot_freqs,
-                                results_folder)
+                                results_folder, fig_folder)
 
     fig_title = f"neural_elements_passive:{make_passive}"
 
@@ -1354,7 +1369,7 @@ def neural_elements_fig(results_folder, ):
 
 def white_noise_neural_sims(amp_i, make_passive, case_names,
                             cell_names, input_idxs, plot_dists, plot_freqs, 
-                            results_folder):
+                            results_folder, fig_folder):
 
     cell_clrs = {
         cell_name: plt.cm.tab20c(0.1 + n / 3)
@@ -2140,7 +2155,7 @@ def detailed_head_model_neuron_fig(results_folder, fig_folder):
 
     ax_vm = fig.add_axes([0.69, 0.24, 0.26, 0.2], frameon=False,
                           xticks=[], yticks=[],
-                          title=r"somatic $V_\text{m}$")
+                          title=r"somatic $V_\mathrm{m}$")
 
     mark_subplots([ax_stim_rt, ax_vm], "IK", xpos=-.05, ypos=0.95)
     mark_subplots([ax_ctx_xz], "J", xpos=.2, ypos=0.95)
@@ -2230,8 +2245,8 @@ def detailed_head_model_neuron_fig(results_folder, fig_folder):
                 edgecolor='k', lw=0.5, angle=-55) #Add a circle in the xy plane
     ax_ctx_xz.add_patch(p_)
 
-    fig.savefig(join(fig_folder, f"EEG_{sim_name}_|P|_10Hz.png"))
-    fig.savefig(join(fig_folder, f"EEG_{sim_name}_|P|_10Hz.pdf"))
+    fig.savefig(join(fig_folder, f"EEG_{sim_name}.png"))
+    fig.savefig(join(fig_folder, f"EEG_{sim_name}.pdf"))
 
 
 
@@ -2242,13 +2257,13 @@ if __name__ == '__main__':
     os.makedirs(results_folder, exist_ok=True)
 
     # Figure 2:
-    make_RT_validation_plot(results_folder, fig_folder)
+    # make_RT_validation_plot(results_folder, fig_folder)
 
     # Figure 3:
-    # neural_elements_fig(results_folder)
+    # neural_elements_fig(results_folder, fig_folder)
 
     # Figure 4:
-    # analytic_ext_pot(fig_folder)
+    analytic_ext_pot(fig_folder)
 
     # Figure 5:
     # detailed_head_model_neuron_fig(results_folder, fig_folder)

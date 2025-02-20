@@ -19,7 +19,7 @@ os.makedirs(results_folder, exist_ok=True)
 main.make_RT_validation_plot(results_folder, fig_folder)
 
 # Figure 3:
-main.neural_elements_fig(results_folder)
+main.neural_elements_fig(results_folder, fig_folder)
 
 # Figure 4:
 main.analytic_ext_pot(fig_folder)
